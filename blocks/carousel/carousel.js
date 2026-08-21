@@ -1,29 +1,34 @@
 export default function decorate(block) {
   const rows = [...block.children];
 
-  const slides = rows.map((row) => {
+  const slides = [];
+
+  rows.forEach((row) => {
     const cells = [...row.children];
 
-    const image = cells[0]?.querySelector('img');
-    const title = cells[1]?.textContent.trim() || '';
-    const description = cells[2]?.textContent.trim() || '';
-    const link = cells[3]?.querySelector('a');
+    // Need at least image, title and description
+    if (cells.length < 3) return;
 
     const slide = document.createElement('div');
     slide.className = 'carousel-slide';
 
-    /* Background image */
+    /* IMAGE */
     const imageWrapper = document.createElement('div');
     imageWrapper.className = 'carousel-image';
+
+    const image = cells[0].querySelector('img');
 
     if (image) {
       const img = image.cloneNode(true);
       imageWrapper.appendChild(img);
     }
 
-    /* Content box */
+    /* CONTENT */
     const content = document.createElement('div');
     content.className = 'carousel-content';
+
+    /* TITLE */
+    const title = cells[1].textContent.trim();
 
     if (title) {
       const heading = document.createElement('h2');
@@ -31,38 +36,49 @@ export default function decorate(block) {
       content.appendChild(heading);
     }
 
+    /* DESCRIPTION */
+    const description = cells[2].textContent.trim();
+
     if (description) {
-      const text = document.createElement('p');
-      text.textContent = description;
-      content.appendChild(text);
+      const paragraph = document.createElement('p');
+      paragraph.textContent = description;
+      content.appendChild(paragraph);
     }
 
-    if (link) {
-      const button = document.createElement('a');
-      button.className = 'carousel-button';
-      button.href = link.href;
-      button.textContent = link.textContent.trim() || 'VIEW TRIP';
+    /* BUTTON */
+    if (cells[3]) {
+      const link = cells[3].querySelector('a');
 
-      if (link.target) {
-        button.target = link.target;
+      if (link) {
+        const button = document.createElement('a');
+
+        button.className = 'carousel-button';
+        button.href = link.href;
+        button.textContent =
+          link.textContent.trim() || 'VIEW TRIP';
+
+        if (link.target) {
+          button.target = link.target;
+        }
+
+        content.appendChild(button);
       }
-
-      content.appendChild(button);
     }
 
     slide.appendChild(imageWrapper);
     slide.appendChild(content);
 
-    return slide;
+    slides.push(slide);
   });
 
   /* Clear authored content */
   block.innerHTML = '';
 
-  /* Carousel */
+  /* VIEWPORT */
   const viewport = document.createElement('div');
   viewport.className = 'carousel-viewport';
 
+  /* TRACK */
   const track = document.createElement('div');
   track.className = 'carousel-track';
 
@@ -73,10 +89,11 @@ export default function decorate(block) {
   viewport.appendChild(track);
   block.appendChild(viewport);
 
-  /* Controls */
+  /* CONTROLS */
   const controls = document.createElement('div');
   controls.className = 'carousel-controls';
 
+  /* DOTS */
   const dots = document.createElement('div');
   dots.className = 'carousel-dots';
 
@@ -85,7 +102,6 @@ export default function decorate(block) {
 
     dot.type = 'button';
     dot.className = 'carousel-dot';
-    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
 
     if (index === 0) {
       dot.classList.add('active');
@@ -98,19 +114,20 @@ export default function decorate(block) {
     dots.appendChild(dot);
   });
 
+  /* ARROWS */
   const arrows = document.createElement('div');
   arrows.className = 'carousel-arrows';
 
   const previous = document.createElement('button');
   previous.type = 'button';
-  previous.className = 'carousel-arrow carousel-prev';
-  previous.setAttribute('aria-label', 'Previous slide');
+  previous.className = 'carousel-arrow';
+  previous.setAttribute('aria-label', 'Previous');
   previous.innerHTML = '&#8592;';
 
   const next = document.createElement('button');
   next.type = 'button';
-  next.className = 'carousel-arrow carousel-next';
-  next.setAttribute('aria-label', 'Next slide');
+  next.className = 'carousel-arrow';
+  next.setAttribute('aria-label', 'Next');
   next.innerHTML = '&#8594;';
 
   arrows.appendChild(previous);
@@ -126,43 +143,32 @@ export default function decorate(block) {
   function goToSlide(index) {
     currentSlide = index;
 
-    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+    track.style.transform =
+      `translateX(-${currentSlide * 100}%)`;
 
     [...dots.children].forEach((dot, i) => {
-      dot.classList.toggle('active', i === currentSlide);
+      dot.classList.toggle(
+        'active',
+        i === currentSlide
+      );
     });
   }
 
   previous.addEventListener('click', () => {
-    const newIndex =
+    const index =
       currentSlide === 0
         ? slides.length - 1
         : currentSlide - 1;
 
-    goToSlide(newIndex);
+    goToSlide(index);
   });
 
   next.addEventListener('click', () => {
-    const newIndex =
+    const index =
       currentSlide === slides.length - 1
         ? 0
         : currentSlide + 1;
 
-    goToSlide(newIndex);
+    goToSlide(index);
   });
-}
-const link = cells[3]?.querySelector('a');
-
-if (link) {
-  const button = document.createElement('a');
-
-  button.className = 'carousel-button';
-  button.href = link.href;
-  button.textContent = link.textContent.trim() || 'VIEW TRIP';
-
-  if (link.target) {
-    button.target = link.target;
-  }
-
-  content.appendChild(button);
 }
