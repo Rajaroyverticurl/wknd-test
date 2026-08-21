@@ -6,8 +6,24 @@ export default function decorate(block) {
   rows.forEach((row) => {
     const cells = [...row.children];
 
-    // Need at least image, title and description
-    if (cells.length < 3) return;
+    if (!cells.length) return;
+
+    /*
+     * DA.live structure:
+     *
+     * 2 columns:
+     * Image | Content
+     *
+     * OR
+     *
+     * 4 columns:
+     * Image | Title | Description | Button
+     */
+
+    const imageCell = cells[0];
+    const image = imageCell?.querySelector('img');
+
+    if (!image) return;
 
     const slide = document.createElement('div');
     slide.className = 'carousel-slide';
@@ -16,62 +32,91 @@ export default function decorate(block) {
     const imageWrapper = document.createElement('div');
     imageWrapper.className = 'carousel-image';
 
-    const image = cells[0].querySelector('img');
+    const img = image.cloneNode(true);
+    imageWrapper.appendChild(img);
 
-    if (image) {
-      const img = image.cloneNode(true);
-      imageWrapper.appendChild(img);
-    }
+    slide.appendChild(imageWrapper);
 
     /* CONTENT */
     const content = document.createElement('div');
     content.className = 'carousel-content';
 
-    /* TITLE */
-    const title = cells[1].textContent.trim();
+    if (cells.length === 2) {
+      /*
+       * 2-column DA.live structure
+       * Image | Content
+       */
 
-    if (title) {
-      const heading = document.createElement('h2');
-      heading.textContent = title;
-      content.appendChild(heading);
-    }
+      const contentCell = cells[1];
 
-    /* DESCRIPTION */
-    const description = cells[2].textContent.trim();
+      /*
+       * Copy the authored content.
+       * This preserves heading, paragraph and link.
+       */
+      [...contentCell.children].forEach((element) => {
+        const clone = element.cloneNode(true);
+        content.appendChild(clone);
+      });
+    } else {
+      /*
+       * 4-column structure
+       * Image | Title | Description | Button
+       */
 
-    if (description) {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = description;
-      content.appendChild(paragraph);
-    }
+      const title = cells[1]?.textContent.trim();
+      const description = cells[2]?.textContent.trim();
+      const link = cells[3]?.querySelector('a');
 
-    /* BUTTON */
-    if (cells[3]) {
-      const link = cells[3].querySelector('a');
+      if (title) {
+        const heading = document.createElement('h2');
+        heading.textContent = title;
+        content.appendChild(heading);
+      }
+
+      if (description) {
+        const paragraph = document.createElement('p');
+        paragraph.textContent = description;
+        content.appendChild(paragraph);
+      }
 
       if (link) {
-        const button = document.createElement('a');
-
+        const button = link.cloneNode(true);
         button.className = 'carousel-button';
-        button.href = link.href;
-        button.textContent =
-          link.textContent.trim() || 'VIEW TRIP';
 
-        if (link.target) {
-          button.target = link.target;
+        if (!button.textContent.trim()) {
+          button.textContent = 'VIEW TRIP';
         }
 
         content.appendChild(button);
       }
     }
 
-    slide.appendChild(imageWrapper);
+    /* Convert authored link to button */
+    const authoredLink = content.querySelector('a');
+
+    if (authoredLink) {
+      authoredLink.classList.add('carousel-button');
+
+      if (!authoredLink.textContent.trim()) {
+        authoredLink.textContent = 'VIEW TRIP';
+      }
+    }
+
     slide.appendChild(content);
 
     slides.push(slide);
   });
 
-  /* Clear authored content */
+  /*
+   * IMPORTANT:
+   * If no slides were found, don't destroy the authored content.
+   */
+  if (!slides.length) {
+    console.warn('Carousel: no valid slides found.');
+    return;
+  }
+
+  /* Clear block */
   block.innerHTML = '';
 
   /* VIEWPORT */
@@ -107,6 +152,8 @@ export default function decorate(block) {
       dot.classList.add('active');
     }
 
+    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+
     dot.addEventListener('click', () => {
       goToSlide(index);
     });
@@ -121,13 +168,13 @@ export default function decorate(block) {
   const previous = document.createElement('button');
   previous.type = 'button';
   previous.className = 'carousel-arrow';
-  previous.setAttribute('aria-label', 'Previous');
+  previous.setAttribute('aria-label', 'Previous slide');
   previous.innerHTML = '&#8592;';
 
   const next = document.createElement('button');
   next.type = 'button';
   next.className = 'carousel-arrow';
-  next.setAttribute('aria-label', 'Next');
+  next.setAttribute('aria-label', 'Next slide');
   next.innerHTML = '&#8594;';
 
   arrows.appendChild(previous);
@@ -147,10 +194,7 @@ export default function decorate(block) {
       `translateX(-${currentSlide * 100}%)`;
 
     [...dots.children].forEach((dot, i) => {
-      dot.classList.toggle(
-        'active',
-        i === currentSlide
-      );
+      dot.classList.toggle('active', i === currentSlide);
     });
   }
 
