@@ -1,338 +1,99 @@
 export default function decorate(block) {
-  /*
-   * The original DA.live content is:
-   *
-   * Row 1 = header
-   * Row 2+ = carousel items
-   *
-   * We read the authored rows and rebuild
-   * the block into the carousel structure.
-   */
-
   const rows = [...block.children];
 
-  if (!rows.length) return;
+  // Create carousel structure
+  const track = document.createElement('div');
+  track.className = 'carousel-track';
 
-  /*
-   * Remove the block heading/header row.
-   */
-
-  const header = rows.shift();
-
-  /*
-   * Create carousel wrapper
-   */
-
-  const carousel = document.createElement('div');
-  carousel.className = 'carousel-wrapper';
-
-  /*
-   * Create slider
-   */
-
-  const slider = document.createElement('div');
-  slider.className = 'carousel-slider';
-
-  /*
-   * Create navigation
-   */
-
-  const prev = document.createElement('button');
-  prev.className = 'carousel-arrow carousel-prev';
-  prev.setAttribute('aria-label', 'Previous slide');
-  prev.innerHTML = '&#8592;';
-
-  const next = document.createElement('button');
-  next.className = 'carousel-arrow carousel-next';
-  next.setAttribute('aria-label', 'Next slide');
-  next.innerHTML = '&#8594;';
-
-  /*
-   * Dots
-   */
-
-  const dots = document.createElement('div');
-  dots.className = 'carousel-dots';
-
-  /*
-   * Build slides from DA.live rows
-   */
-
-  rows.forEach((row, index) => {
+  rows.forEach((row) => {
     const cells = [...row.children];
 
-    if (!cells.length) return;
-
-    const imageCell = cells[0];
-    const titleCell = cells[1];
-    const descriptionCell = cells[2];
-    const linkCell = cells[3];
-
-    /*
-     * Create slide
-     */
-
-    const slide = document.createElement('article');
+    const slide = document.createElement('div');
     slide.className = 'carousel-slide';
 
-    /*
-     * Image
-     */
-
+    // Image
+    const imageCell = cells[0];
     const image = imageCell?.querySelector('img');
 
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'carousel-image';
+
     if (image) {
-      const picture = document.createElement('div');
-      picture.className = 'carousel-image';
-
-      picture.appendChild(image.cloneNode(true));
-
-      slide.appendChild(picture);
+      imageContainer.appendChild(image);
     }
 
-    /*
-     * Content card
-     */
-
+    // Content
     const content = document.createElement('div');
     content.className = 'carousel-content';
 
-    /*
-     * Title
-     */
+    const title = cells[1]?.textContent.trim();
+    const description = cells[2]?.textContent.trim();
 
-    if (titleCell) {
-      const title = document.createElement('h2');
-
-      title.innerHTML = titleCell.innerHTML;
-
-      content.appendChild(title);
+    if (title) {
+      const heading = document.createElement('h2');
+      heading.textContent = title;
+      content.appendChild(heading);
     }
 
-    /*
-     * Description
-     */
-
-    if (descriptionCell) {
-      const description = document.createElement('p');
-
-      description.innerHTML = descriptionCell.innerHTML;
-
-      content.appendChild(description);
+    if (description) {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = description;
+      content.appendChild(paragraph);
     }
 
-    /*
-     * Link
-     */
-
-    const link = linkCell?.querySelector('a');
-
-    if (link) {
-      const button = link.cloneNode(true);
-
-      button.classList.add('carousel-button');
-
-      content.appendChild(button);
-    }
-
+    slide.appendChild(imageContainer);
     slide.appendChild(content);
-
-    slider.appendChild(slide);
-
-
-    /*
-     * Create dot
-     */
-
-    const dot = document.createElement('button');
-
-    dot.className = 'carousel-dot';
-
-    dot.setAttribute(
-      'aria-label',
-      `Go to slide ${index + 1}`,
-    );
-
-    dot.dataset.index = index;
-
-    dots.appendChild(dot);
+    track.appendChild(slide);
   });
 
-
-  /*
-   * Build final structure
-   */
-
-  carousel.appendChild(slider);
-
-  carousel.appendChild(dots);
-
-  carousel.appendChild(prev);
-
-  carousel.appendChild(next);
-
-
-  /*
-   * Replace DA.live content
-   */
-
+  // Remove original authored rows
   block.innerHTML = '';
 
-  block.appendChild(carousel);
+  // Carousel wrapper
+  const viewport = document.createElement('div');
+  viewport.className = 'carousel-viewport';
+  viewport.appendChild(track);
 
+  // Buttons
+  const prevButton = document.createElement('button');
+  prevButton.className = 'carousel-prev';
+  prevButton.type = 'button';
+  prevButton.setAttribute('aria-label', 'Previous slide');
+  prevButton.innerHTML = '&#10094;';
 
-  /*
-   * Get slides/dots
-   */
+  const nextButton = document.createElement('button');
+  nextButton.className = 'carousel-next';
+  nextButton.type = 'button';
+  nextButton.setAttribute('aria-label', 'Next slide');
+  nextButton.innerHTML = '&#10095;';
 
-  const slides = [
-    ...slider.querySelectorAll('.carousel-slide'),
-  ];
+  block.appendChild(viewport);
+  block.appendChild(prevButton);
+  block.appendChild(nextButton);
 
-  const dotButtons = [
-    ...dots.querySelectorAll('.carousel-dot'),
-  ];
+  const slides = [...track.children];
+  let currentIndex = 0;
 
+  function updateCarousel() {
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
 
-  if (!slides.length) return;
+    prevButton.disabled = currentIndex === 0;
+    nextButton.disabled = currentIndex === slides.length - 1;
+  }
 
-
-  let current = 0;
-
-
-  /*
-   * Show slide
-   */
-
-  function showSlide(index) {
-    if (index < 0) {
-      index = slides.length - 1;
+  prevButton.addEventListener('click', () => {
+    if (currentIndex > 0) {
+      currentIndex -= 1;
+      updateCarousel();
     }
+  });
 
-    if (index >= slides.length) {
-      index = 0;
+  nextButton.addEventListener('click', () => {
+    if (currentIndex < slides.length - 1) {
+      currentIndex += 1;
+      updateCarousel();
     }
-
-    current = index;
-
-    slider.style.transform =
-      `translateX(-${current * 100}%)`;
-
-    dotButtons.forEach((dot, i) => {
-      dot.classList.toggle(
-        'active',
-        i === current,
-      );
-    });
-  }
-
-
-  /*
-   * Previous
-   */
-
-  prev.addEventListener('click', () => {
-    showSlide(current - 1);
-    restartAutoplay();
   });
 
-
-  /*
-   * Next
-   */
-
-  next.addEventListener('click', () => {
-    showSlide(current + 1);
-    restartAutoplay();
-  });
-
-
-  /*
-   * Dots
-   */
-
-  dotButtons.forEach((dot) => {
-    dot.addEventListener('click', () => {
-      showSlide(Number(dot.dataset.index));
-      restartAutoplay();
-    });
-  });
-
-
-  /*
-   * Autoplay
-   */
-
-  let autoplay;
-
-  function startAutoplay() {
-    autoplay = setInterval(() => {
-      showSlide(current + 1);
-    }, 5000);
-  }
-
-
-  function restartAutoplay() {
-    clearInterval(autoplay);
-    startAutoplay();
-  }
-
-
-  /*
-   * Pause while mouse is over carousel
-   */
-
-  carousel.addEventListener('mouseenter', () => {
-    clearInterval(autoplay);
-  });
-
-
-  carousel.addEventListener('mouseleave', () => {
-    startAutoplay();
-  });
-
-
-  /*
-   * Touch/swipe
-   */
-
-  let startX = 0;
-
-  carousel.addEventListener(
-    'touchstart',
-    (event) => {
-      startX = event.touches[0].clientX;
-    },
-    { passive: true },
-  );
-
-
-  carousel.addEventListener(
-    'touchend',
-    (event) => {
-      const endX =
-        event.changedTouches[0].clientX;
-
-      const distance = endX - startX;
-
-      if (Math.abs(distance) < 50) return;
-
-      if (distance < 0) {
-        showSlide(current + 1);
-      } else {
-        showSlide(current - 1);
-      }
-
-      restartAutoplay();
-    },
-  );
-
-
-  /*
-   * Initial slide
-   */
-
-  showSlide(0);
-
-  startAutoplay();
+  updateCarousel();
 }
