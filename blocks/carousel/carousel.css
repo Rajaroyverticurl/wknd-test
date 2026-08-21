@@ -1,20 +1,15 @@
 .carousel {
   position: relative;
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: 0 20px 50px;
   box-sizing: border-box;
 }
 
-/* =========================
-   VIEWPORT
-========================= */
-
 .carousel-viewport {
   width: 100%;
   overflow: hidden;
-  position: relative;
 }
 
 .carousel-track {
@@ -22,10 +17,6 @@
   width: 100%;
   transition: transform 0.5s ease;
 }
-
-/* =========================
-   SLIDE
-========================= */
 
 .carousel-slide {
   position: relative;
@@ -35,10 +26,7 @@
   box-sizing: border-box;
 }
 
-/* =========================
-   IMAGE
-========================= */
-
+/* Full-width image */
 .carousel-image {
   position: absolute;
   inset: 0;
@@ -52,87 +40,62 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
 }
 
-/* =========================
-   WHITE CONTENT BOX
-========================= */
-
+/* White content panel */
 .carousel-content {
   position: absolute;
-
   left: 14%;
   right: 14%;
-  bottom: -1px;
-
-  min-height: 135px;
-
-  padding: 18px 20px 16px;
+  bottom: 0;
 
   background: #fff;
 
+  padding: 18px 20px 8px;
   box-sizing: border-box;
 }
 
-/* =========================
-   TITLE
-========================= */
-
+/* Title */
 .carousel-content h2 {
   margin: 0 0 8px;
 
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 28px;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1.2;
 
   color: #111;
 }
 
-/* =========================
-   DESCRIPTION
-========================= */
-
+/* Description */
 .carousel-content p {
   margin: 0 0 16px;
 
-  font-family: Arial, Helvetica, sans-serif;
   font-size: 12px;
   line-height: 1.5;
-
   color: #222;
 }
 
-/* =========================
-   VIEW TRIP BUTTON
-========================= */
-
+/* Yellow button AFTER description */
 .carousel-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  min-width: 98px;
+  width: 98px;
   height: 38px;
 
-  padding: 0 20px;
+  margin-top: 0;
 
   background: #ffe500;
   color: #111;
 
-  font-family: Arial, Helvetica, sans-serif;
   font-size: 10px;
   font-weight: 700;
-
   text-decoration: none;
   text-transform: uppercase;
 
   box-sizing: border-box;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
 }
 
 .carousel-button:hover {
@@ -140,24 +103,16 @@
   color: #fff;
 }
 
-/* =========================
-   CONTROLS
-========================= */
-
+/* Controls */
 .carousel-controls {
   position: relative;
-
   width: 100%;
   height: 35px;
 }
 
-/* =========================
-   DOTS
-========================= */
-
+/* Dots */
 .carousel-dots {
   position: absolute;
-
   left: 50%;
   bottom: 0;
 
@@ -170,15 +125,12 @@
 .carousel-dot {
   width: 7px;
   height: 7px;
-
-  margin: 0;
   padding: 0;
 
   border: 0;
   border-radius: 50%;
 
   background: #aaa;
-
   cursor: pointer;
 }
 
@@ -186,13 +138,9 @@
   background: #333;
 }
 
-/* =========================
-   ARROWS
-========================= */
-
+/* Arrows */
 .carousel-arrows {
   position: absolute;
-
   right: 0;
   bottom: -2px;
 
@@ -205,76 +153,18 @@
   height: 25px;
 
   padding: 0;
-
   border: 0;
-  background: transparent;
 
+  background: transparent;
   color: #111;
 
-  font-family: Arial, Helvetica, sans-serif;
   font-size: 25px;
-  font-weight: 300;
   line-height: 25px;
 
   cursor: pointer;
 }
-
-.carousel-arrow:hover {
-  color: #777;
-}
-
-/* =========================
-   TABLET
-========================= */
-
-@media (max-width: 900px) {
-  .carousel {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .carousel-slide {
-    height: 380px;
-  }
-
-  .carousel-content {
-    left: 10%;
-    right: 10%;
-  }
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 600px) {
-  .carousel {
-    padding: 0 0 45px;
-  }
-
-  .carousel-slide {
-    height: 430px;
-  }
-
-  .carousel-content {
-    left: 15px;
-    right: 15px;
-    bottom: 0;
-
-    min-height: 160px;
-
-    padding: 18px;
-  }
-
-  .carousel-content h2 {
-    font-size: 23px;
-  }
-
-  .carousel-content p {
-    font-size: 12px;
-  }
-
-  .carousel-arrows {
-    right: 15px;
-  }
+.carousel-content {
+  left: 0;
+  right: 0;
+  width: 100%;
 }
