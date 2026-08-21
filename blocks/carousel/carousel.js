@@ -1,33 +1,29 @@
 export default function decorate(block) {
   const rows = [...block.children];
 
-  // Create carousel structure
-  const track = document.createElement('div');
-  track.className = 'carousel-track';
-
-  rows.forEach((row) => {
+  const slides = rows.map((row) => {
     const cells = [...row.children];
+
+    const image = cells[0]?.querySelector('img');
+    const title = cells[1]?.textContent.trim() || '';
+    const description = cells[2]?.textContent.trim() || '';
+    const link = cells[3]?.querySelector('a');
 
     const slide = document.createElement('div');
     slide.className = 'carousel-slide';
 
-    // Image
-    const imageCell = cells[0];
-    const image = imageCell?.querySelector('img');
-
-    const imageContainer = document.createElement('div');
-    imageContainer.className = 'carousel-image';
+    /* Background image */
+    const imageWrapper = document.createElement('div');
+    imageWrapper.className = 'carousel-image';
 
     if (image) {
-      imageContainer.appendChild(image);
+      const img = image.cloneNode(true);
+      imageWrapper.appendChild(img);
     }
 
-    // Content
+    /* Content box */
     const content = document.createElement('div');
     content.className = 'carousel-content';
-
-    const title = cells[1]?.textContent.trim();
-    const description = cells[2]?.textContent.trim();
 
     if (title) {
       const heading = document.createElement('h2');
@@ -36,64 +32,122 @@ export default function decorate(block) {
     }
 
     if (description) {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = description;
-      content.appendChild(paragraph);
+      const text = document.createElement('p');
+      text.textContent = description;
+      content.appendChild(text);
     }
 
-    slide.appendChild(imageContainer);
+    if (link) {
+      const button = document.createElement('a');
+      button.className = 'carousel-button';
+      button.href = link.href;
+      button.textContent = link.textContent.trim() || 'VIEW TRIP';
+
+      if (link.target) {
+        button.target = link.target;
+      }
+
+      content.appendChild(button);
+    }
+
+    slide.appendChild(imageWrapper);
     slide.appendChild(content);
+
+    return slide;
+  });
+
+  /* Clear authored content */
+  block.innerHTML = '';
+
+  /* Carousel */
+  const viewport = document.createElement('div');
+  viewport.className = 'carousel-viewport';
+
+  const track = document.createElement('div');
+  track.className = 'carousel-track';
+
+  slides.forEach((slide) => {
     track.appendChild(slide);
   });
 
-  // Remove original authored rows
-  block.innerHTML = '';
-
-  // Carousel wrapper
-  const viewport = document.createElement('div');
-  viewport.className = 'carousel-viewport';
   viewport.appendChild(track);
-
-  // Buttons
-  const prevButton = document.createElement('button');
-  prevButton.className = 'carousel-prev';
-  prevButton.type = 'button';
-  prevButton.setAttribute('aria-label', 'Previous slide');
-  prevButton.innerHTML = '&#10094;';
-
-  const nextButton = document.createElement('button');
-  nextButton.className = 'carousel-next';
-  nextButton.type = 'button';
-  nextButton.setAttribute('aria-label', 'Next slide');
-  nextButton.innerHTML = '&#10095;';
-
   block.appendChild(viewport);
-  block.appendChild(prevButton);
-  block.appendChild(nextButton);
 
-  const slides = [...track.children];
-  let currentIndex = 0;
+  /* Controls */
+  const controls = document.createElement('div');
+  controls.className = 'carousel-controls';
 
-  function updateCarousel() {
-    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+  const dots = document.createElement('div');
+  dots.className = 'carousel-dots';
 
-    prevButton.disabled = currentIndex === 0;
-    nextButton.disabled = currentIndex === slides.length - 1;
+  slides.forEach((slide, index) => {
+    const dot = document.createElement('button');
+
+    dot.type = 'button';
+    dot.className = 'carousel-dot';
+    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
+
+    if (index === 0) {
+      dot.classList.add('active');
+    }
+
+    dot.addEventListener('click', () => {
+      goToSlide(index);
+    });
+
+    dots.appendChild(dot);
+  });
+
+  const arrows = document.createElement('div');
+  arrows.className = 'carousel-arrows';
+
+  const previous = document.createElement('button');
+  previous.type = 'button';
+  previous.className = 'carousel-arrow carousel-prev';
+  previous.setAttribute('aria-label', 'Previous slide');
+  previous.innerHTML = '&#8592;';
+
+  const next = document.createElement('button');
+  next.type = 'button';
+  next.className = 'carousel-arrow carousel-next';
+  next.setAttribute('aria-label', 'Next slide');
+  next.innerHTML = '&#8594;';
+
+  arrows.appendChild(previous);
+  arrows.appendChild(next);
+
+  controls.appendChild(dots);
+  controls.appendChild(arrows);
+
+  block.appendChild(controls);
+
+  let currentSlide = 0;
+
+  function goToSlide(index) {
+    currentSlide = index;
+
+    track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    [...dots.children].forEach((dot, i) => {
+      dot.classList.toggle('active', i === currentSlide);
+    });
   }
 
-  prevButton.addEventListener('click', () => {
-    if (currentIndex > 0) {
-      currentIndex -= 1;
-      updateCarousel();
-    }
+  previous.addEventListener('click', () => {
+    const newIndex =
+      currentSlide === 0
+        ? slides.length - 1
+        : currentSlide - 1;
+
+    goToSlide(newIndex);
   });
 
-  nextButton.addEventListener('click', () => {
-    if (currentIndex < slides.length - 1) {
-      currentIndex += 1;
-      updateCarousel();
-    }
-  });
+  next.addEventListener('click', () => {
+    const newIndex =
+      currentSlide === slides.length - 1
+        ? 0
+        : currentSlide + 1;
 
-  updateCarousel();
+    goToSlide(newIndex);
+  });
 }
