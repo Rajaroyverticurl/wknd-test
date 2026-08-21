@@ -151,3 +151,18 @@ export default function decorate(block) {
     goToSlide(newIndex);
   });
 }
+const link = cells[3]?.querySelector('a');
+
+if (link) {
+  const button = document.createElement('a');
+
+  button.className = 'carousel-button';
+  button.href = link.href;
+  button.textContent = link.textContent.trim() || 'VIEW TRIP';
+
+  if (link.target) {
+    button.target = link.target;
+  }
+
+  content.appendChild(button);
+}
