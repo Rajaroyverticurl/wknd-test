@@ -1,232 +1,338 @@
-document.addEventListener("DOMContentLoaded", function () {
+export default function decorate(block) {
+  /*
+   * The original DA.live content is:
+   *
+   * Row 1 = header
+   * Row 2+ = carousel items
+   *
+   * We read the authored rows and rebuild
+   * the block into the carousel structure.
+   */
 
-    const slider = document.getElementById("slider");
+  const rows = [...block.children];
 
-    const carousel = document.getElementById("carousel");
+  if (!rows.length) return;
 
-    const slides = document.querySelectorAll(".slide");
+  /*
+   * Remove the block heading/header row.
+   */
 
-    const dots = document.querySelectorAll(".dot");
+  const header = rows.shift();
 
-    const nextButton = document.getElementById("next");
+  /*
+   * Create carousel wrapper
+   */
 
-    const prevButton = document.getElementById("prev");
+  const carousel = document.createElement('div');
+  carousel.className = 'carousel-wrapper';
 
+  /*
+   * Create slider
+   */
 
-    let currentIndex = 0;
+  const slider = document.createElement('div');
+  slider.className = 'carousel-slider';
 
-    let timer;
+  /*
+   * Create navigation
+   */
 
+  const prev = document.createElement('button');
+  prev.className = 'carousel-arrow carousel-prev';
+  prev.setAttribute('aria-label', 'Previous slide');
+  prev.innerHTML = '&#8592;';
 
-    /* =========================
-       GO TO SLIDE
-    ========================= */
+  const next = document.createElement('button');
+  next.className = 'carousel-arrow carousel-next';
+  next.setAttribute('aria-label', 'Next slide');
+  next.innerHTML = '&#8594;';
 
-    function goToSlide(index) {
+  /*
+   * Dots
+   */
 
-        /*
-        Loop back to first slide
-        */
+  const dots = document.createElement('div');
+  dots.className = 'carousel-dots';
 
-        if (index >= slides.length) {
-            index = 0;
-        }
+  /*
+   * Build slides from DA.live rows
+   */
 
+  rows.forEach((row, index) => {
+    const cells = [...row.children];
 
-        /*
-        Loop to last slide
-        */
+    if (!cells.length) return;
 
-        if (index < 0) {
-            index = slides.length - 1;
-        }
+    const imageCell = cells[0];
+    const titleCell = cells[1];
+    const descriptionCell = cells[2];
+    const linkCell = cells[3];
 
+    /*
+     * Create slide
+     */
 
-        currentIndex = index;
+    const slide = document.createElement('article');
+    slide.className = 'carousel-slide';
 
+    /*
+     * Image
+     */
 
-        /*
-        Move slider
-        */
+    const image = imageCell?.querySelector('img');
 
-        slider.style.transform =
-            `translateX(-${currentIndex * 100}%)`;
+    if (image) {
+      const picture = document.createElement('div');
+      picture.className = 'carousel-image';
 
+      picture.appendChild(image.cloneNode(true));
 
-        /*
-        Update dots
-        */
-
-        dots.forEach(function(dot, i) {
-
-            dot.classList.toggle(
-                "active",
-                i === currentIndex
-            );
-
-        });
-
+      slide.appendChild(picture);
     }
 
+    /*
+     * Content card
+     */
 
-    /* =========================
-       NEXT BUTTON
-    ========================= */
+    const content = document.createElement('div');
+    content.className = 'carousel-content';
 
-    nextButton.addEventListener("click", function () {
+    /*
+     * Title
+     */
 
-        goToSlide(currentIndex + 1);
+    if (titleCell) {
+      const title = document.createElement('h2');
 
-        restartTimer();
+      title.innerHTML = titleCell.innerHTML;
 
-    });
-
-
-    /* =========================
-       PREVIOUS BUTTON
-    ========================= */
-
-    prevButton.addEventListener("click", function () {
-
-        goToSlide(currentIndex - 1);
-
-        restartTimer();
-
-    });
-
-
-    /* =========================
-       DOT BUTTONS
-    ========================= */
-
-    dots.forEach(function(dot) {
-
-        dot.addEventListener("click", function () {
-
-            const index =
-                Number(dot.dataset.index);
-
-            goToSlide(index);
-
-            restartTimer();
-
-        });
-
-    });
-
-
-    /* =========================
-       AUTO PLAY
-    ========================= */
-
-    function startTimer() {
-
-        timer = setInterval(function () {
-
-            goToSlide(currentIndex + 1);
-
-        }, 5000);
-
+      content.appendChild(title);
     }
 
+    /*
+     * Description
+     */
 
-    function restartTimer() {
+    if (descriptionCell) {
+      const description = document.createElement('p');
 
-        clearInterval(timer);
+      description.innerHTML = descriptionCell.innerHTML;
 
-        startTimer();
-
+      content.appendChild(description);
     }
 
+    /*
+     * Link
+     */
 
-    /* =========================
-       PAUSE ON HOVER
-    ========================= */
+    const link = linkCell?.querySelector('a');
 
-    carousel.addEventListener(
-        "mouseenter",
-        function () {
+    if (link) {
+      const button = link.cloneNode(true);
 
-            clearInterval(timer);
+      button.classList.add('carousel-button');
 
-        }
+      content.appendChild(button);
+    }
+
+    slide.appendChild(content);
+
+    slider.appendChild(slide);
+
+
+    /*
+     * Create dot
+     */
+
+    const dot = document.createElement('button');
+
+    dot.className = 'carousel-dot';
+
+    dot.setAttribute(
+      'aria-label',
+      `Go to slide ${index + 1}`,
     );
 
+    dot.dataset.index = index;
 
-    carousel.addEventListener(
-        "mouseleave",
-        function () {
-
-            startTimer();
-
-        }
-    );
+    dots.appendChild(dot);
+  });
 
 
-    /* =========================
-       TOUCH SWIPE
-    ========================= */
+  /*
+   * Build final structure
+   */
 
-    let startX = 0;
+  carousel.appendChild(slider);
 
-    let endX = 0;
+  carousel.appendChild(dots);
 
+  carousel.appendChild(prev);
 
-    carousel.addEventListener(
-        "touchstart",
-        function (event) {
-
-            startX =
-                event.touches[0].clientX;
-
-        },
-        { passive: true }
-    );
+  carousel.appendChild(next);
 
 
-    carousel.addEventListener(
-        "touchend",
-        function (event) {
+  /*
+   * Replace DA.live content
+   */
 
-            endX =
-                event.changedTouches[0].clientX;
+  block.innerHTML = '';
 
-            const distance =
-                endX - startX;
+  block.appendChild(carousel);
 
 
-            if (Math.abs(distance) < 50) {
-                return;
-            }
+  /*
+   * Get slides/dots
+   */
+
+  const slides = [
+    ...slider.querySelectorAll('.carousel-slide'),
+  ];
+
+  const dotButtons = [
+    ...dots.querySelectorAll('.carousel-dot'),
+  ];
 
 
-            if (distance < 0) {
-
-                goToSlide(
-                    currentIndex + 1
-                );
-
-            } else {
-
-                goToSlide(
-                    currentIndex - 1
-                );
-
-            }
+  if (!slides.length) return;
 
 
-            restartTimer();
-
-        }
-    );
+  let current = 0;
 
 
-    /* =========================
-       START
-    ========================= */
+  /*
+   * Show slide
+   */
 
-    goToSlide(0);
+  function showSlide(index) {
+    if (index < 0) {
+      index = slides.length - 1;
+    }
 
-    startTimer();
+    if (index >= slides.length) {
+      index = 0;
+    }
 
-});
+    current = index;
+
+    slider.style.transform =
+      `translateX(-${current * 100}%)`;
+
+    dotButtons.forEach((dot, i) => {
+      dot.classList.toggle(
+        'active',
+        i === current,
+      );
+    });
+  }
+
+
+  /*
+   * Previous
+   */
+
+  prev.addEventListener('click', () => {
+    showSlide(current - 1);
+    restartAutoplay();
+  });
+
+
+  /*
+   * Next
+   */
+
+  next.addEventListener('click', () => {
+    showSlide(current + 1);
+    restartAutoplay();
+  });
+
+
+  /*
+   * Dots
+   */
+
+  dotButtons.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      showSlide(Number(dot.dataset.index));
+      restartAutoplay();
+    });
+  });
+
+
+  /*
+   * Autoplay
+   */
+
+  let autoplay;
+
+  function startAutoplay() {
+    autoplay = setInterval(() => {
+      showSlide(current + 1);
+    }, 5000);
+  }
+
+
+  function restartAutoplay() {
+    clearInterval(autoplay);
+    startAutoplay();
+  }
+
+
+  /*
+   * Pause while mouse is over carousel
+   */
+
+  carousel.addEventListener('mouseenter', () => {
+    clearInterval(autoplay);
+  });
+
+
+  carousel.addEventListener('mouseleave', () => {
+    startAutoplay();
+  });
+
+
+  /*
+   * Touch/swipe
+   */
+
+  let startX = 0;
+
+  carousel.addEventListener(
+    'touchstart',
+    (event) => {
+      startX = event.touches[0].clientX;
+    },
+    { passive: true },
+  );
+
+
+  carousel.addEventListener(
+    'touchend',
+    (event) => {
+      const endX =
+        event.changedTouches[0].clientX;
+
+      const distance = endX - startX;
+
+      if (Math.abs(distance) < 50) return;
+
+      if (distance < 0) {
+        showSlide(current + 1);
+      } else {
+        showSlide(current - 1);
+      }
+
+      restartAutoplay();
+    },
+  );
+
+
+  /*
+   * Initial slide
+   */
+
+  showSlide(0);
+
+  startAutoplay();
+}
