@@ -118,8 +118,9 @@
    ========================= */
 
 .faq-aside {
-  padding-top: 18px;
+  padding-top: 27px;
   padding-left:65px;
+  margin-bottom: 13.5px;
 }
 
 .faq-help h2 {
@@ -131,13 +132,13 @@
 
 .faq-help p {
   margin: 0 0 5px;
-
+  color:#202020
   font-size: 16px;
   line-height: 1.5;
 }
 
 .faq-help a {
-  color: #1479c9;
+  color: #0045FF;
   text-decoration: underline;
 }
 
