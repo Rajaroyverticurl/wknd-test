@@ -24,7 +24,8 @@
   line-height: 1.2;
   margin: 0 0 8px;
   padding-bottom: 7px;
-  border-bottom: 2px solid #e5c400;
+  border-bottom: 2px solid #ffea00;
+  width:5rem;
 }
 
 .faq-image {
