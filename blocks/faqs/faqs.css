@@ -19,7 +19,7 @@
 }
 
 .faq-heading {
-  font-size: 22px;
+  font-size: 33px;
   font-weight: 400;
   line-height: 1.2;
   margin: 0 0 8px;
@@ -118,20 +118,21 @@
    ========================= */
 
 .faq-aside {
-  padding-top: 4px;
+  padding-top: 18px;
+  padding-left:65px;
 }
 
 .faq-help h2 {
   margin: 0 0 8px;
 
-  font-size: 10px;
+  font-size: 22px;
   font-weight: 400;
 }
 
 .faq-help p {
   margin: 0 0 5px;
 
-  font-size: 7px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
