@@ -1,19 +1,29 @@
-function decorateAccordion(el) {
-  const titles = el.querySelectorAll(':scope > div:nth-child(odd)');
-  titles.forEach((title) => {
-    // Add a class to the title container
-    title.classList.add('item-title');
-    // Remove the empty div
-    title.querySelector(':scope > div:last-of-type').remove();
-    // Add a class to the content
-    title.nextElementSibling.classList.add('item-content');
-    // Add a click handler to open the content
-    title.addEventListener('click', () => {
-      title.classList.toggle('open');
-    });
+/**
+ * Decorates the Accordion block.
+ * @param {Element} block The accordion block element
+ */
+export default function decorate(block) {
+  [...block.children].forEach((row) => {
+    // Extract title (first column) and content (second column)
+    const label = row.children[0];
+    const body = row.children[1];
+
+    if (label && body) {
+      // Create semantic summary header
+      const summary = document.createElement('summary');
+      summary.className = 'accordion-item-label';
+      summary.append(...label.childNodes);
+
+      // Wrap body content
+      body.className = 'accordion-item-body';
+
+      // Create details element
+      const details = document.createElement('details');
+      details.className = 'accordion-item';
+      details.append(summary, body);
+
+      // Replace original row with decorated details element
+      row.replaceWith(details);
+    }
   });
 }
-const els = document.querySelectorAll('.accordion');
-els.forEach((el) => {
-  decorateAccordion(el);
-});
