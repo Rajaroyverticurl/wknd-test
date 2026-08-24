@@ -1,23 +1,37 @@
-import { getMetadata } from '../../scripts/aem.js';
 import { loadFragment } from '../fragment/fragment.js';
 
 /**
- * loads and decorates the footer
+ * Loads and decorates the footer.
  * @param {Element} block The footer block element
  */
-export default function decorate(block) {
-  const rows = [...block.children];
+export default async function decorate(block) {
+  // Load footer fragment
+  const footerPath = '/footer';
 
-  // Add semantic classes to the authored rows.
+  const fragment = await loadFragment(footerPath);
+
+  if (!fragment) {
+    return;
+  }
+
+  // Replace block content with footer fragment content
+  block.textContent = '';
+  block.append(fragment);
+
+  // Get the rows from the loaded fragment
+  const rows = [...block.querySelectorAll(':scope > div > div')];
+
   rows.forEach((row, index) => {
     row.classList.add(`footer-row-${index + 1}`);
   });
 
-  // Optional: turn social links into icon links.
+  // External/social links
   const links = block.querySelectorAll('a');
 
   links.forEach((link) => {
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
+    if (link.hostname !== window.location.hostname) {
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    }
   });
 }
