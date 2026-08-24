@@ -1,28 +1,26 @@
 /**
- * Decorates the Tabs block where Row 1 = Tab Titles and Row 2 = Content per Tab.
+ * Decorates the Tabs block into a 4-column card grid with image, title, and description.
  * @param {Element} block The tabs block element
  */
 export default function decorate(block) {
   const rows = [...block.children];
   if (rows.length < 2) return;
 
-  // Row 1 = Titles, Row 2 = Contents
   const titleRow = rows[0];
   const contentRow = rows[1];
 
   const tabTitles = [...titleRow.children];
   const tabContents = [...contentRow.children];
 
-  // Container for tab buttons
+  // Tab navigation bar container
   const tabList = document.createElement('div');
   tabList.className = 'tabs-list';
   tabList.setAttribute('role', 'tablist');
 
-  // Container for tab panels
+  // Tab panels wrapper container
   const panelsContainer = document.createElement('div');
   panelsContainer.className = 'tabs-panels';
 
-  // Build tabs and panels by matching column index
   tabTitles.forEach((titleEl, index) => {
     const tabName = titleEl.textContent.trim();
     const contentEl = tabContents[index];
@@ -40,7 +38,7 @@ export default function decorate(block) {
     button.setAttribute('aria-controls', panelId);
     button.textContent = tabName;
 
-    // 2. Create Corresponding Panel
+    // 2. Create Tab Panel
     const panel = document.createElement('div');
     panel.className = `tabs-panel ${index === 0 ? 'active' : ''}`;
     panel.id = panelId;
@@ -48,21 +46,62 @@ export default function decorate(block) {
     panel.setAttribute('aria-labelledby', tabId);
 
     if (contentEl) {
-      panel.append(...contentEl.childNodes);
+      // Find pictures and pair them with accompanying Title & Description
+      const pictures = [...contentEl.querySelectorAll('picture')];
+
+      if (pictures.length > 0) {
+        pictures.forEach((pic) => {
+          const card = document.createElement('div');
+          card.className = 'tabs-card';
+
+          // Image container
+          const imgWrapper = document.createElement('div');
+          imgWrapper.className = 'tabs-card-image';
+          imgWrapper.append(pic.cloneNode(true));
+          card.append(imgWrapper);
+
+          // Find Title element (paragraph following picture)
+          const parentPara = pic.closest('p') || pic.parentElement;
+          let nextEl = parentPara ? parentPara.nextElementSibling : pic.nextElementSibling;
+
+          if (nextEl) {
+            const titleEl = document.createElement('h3');
+            titleEl.className = 'tabs-card-title';
+            titleEl.textContent = nextEl.textContent.trim();
+            card.append(titleEl);
+
+            nextEl = nextEl.nextElementSibling;
+          }
+
+          // Find Description element (paragraph following title)
+          if (nextEl && !nextEl.querySelector('picture')) {
+            const descEl = document.createElement('p');
+            descEl.className = 'tabs-card-desc';
+            descEl.textContent = nextEl.textContent.trim();
+            card.append(descEl);
+          }
+
+          panel.append(card);
+        });
+      } else {
+        // Fallback for direct children
+        [...contentEl.children].forEach((child) => {
+          const card = document.createElement('div');
+          card.className = 'tabs-card';
+          card.append(child.cloneNode(true));
+          panel.append(card);
+        });
+      }
     }
 
-    // 3. Click Event Listener
+    // Tab toggle click listener
     button.addEventListener('click', () => {
-      // Deactivate all buttons & panels
       tabList.querySelectorAll('.tabs-tab').forEach((btn) => {
         btn.classList.remove('active');
         btn.setAttribute('aria-selected', 'false');
       });
-      panelsContainer.querySelectorAll('.tabs-panel').forEach((p) => {
-        p.classList.remove('active');
-      });
+      panelsContainer.querySelectorAll('.tabs-panel').forEach((p) => p.classList.remove('active'));
 
-      // Activate clicked button & matching panel
       button.classList.add('active');
       button.setAttribute('aria-selected', 'true');
       panel.classList.add('active');
@@ -72,6 +111,5 @@ export default function decorate(block) {
     panelsContainer.append(panel);
   });
 
-  // Replace original table HTML with Tab Bar + Panels
   block.replaceChildren(tabList, panelsContainer);
 }
