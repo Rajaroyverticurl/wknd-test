@@ -1,5 +1,6 @@
 /**
- * Decorates the Tabs block into a 4-column card grid with image, title, and description.
+ * Decorates the Tabs block into a 4-column card grid.
+ * Explicitly separates Title and Description elements to avoid mixing.
  * @param {Element} block The tabs block element
  */
 export default function decorate(block) {
@@ -12,12 +13,10 @@ export default function decorate(block) {
   const tabTitles = [...titleRow.children];
   const tabContents = [...contentRow.children];
 
-  // Tab navigation bar container
   const tabList = document.createElement('div');
   tabList.className = 'tabs-list';
   tabList.setAttribute('role', 'tablist');
 
-  // Tab panels wrapper container
   const panelsContainer = document.createElement('div');
   panelsContainer.className = 'tabs-panels';
 
@@ -28,25 +27,19 @@ export default function decorate(block) {
     const tabId = `tab-btn-${index}`;
     const panelId = `tab-panel-${index}`;
 
-    // 1. Create Tab Button
+    // 1. Tab Button
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `tabs-tab ${index === 0 ? 'active' : ''}`;
     button.id = tabId;
-    button.setAttribute('role', 'tab');
-    button.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
-    button.setAttribute('aria-controls', panelId);
     button.textContent = tabName;
 
-    // 2. Create Tab Panel
+    // 2. Tab Panel
     const panel = document.createElement('div');
     panel.className = `tabs-panel ${index === 0 ? 'active' : ''}`;
     panel.id = panelId;
-    panel.setAttribute('role', 'tabpanel');
-    panel.setAttribute('aria-labelledby', tabId);
 
     if (contentEl) {
-      // Find pictures and pair them with accompanying Title & Description
       const pictures = [...contentEl.querySelectorAll('picture')];
 
       if (pictures.length > 0) {
@@ -54,37 +47,43 @@ export default function decorate(block) {
           const card = document.createElement('div');
           card.className = 'tabs-card';
 
-          // Image container
+          // A. Add Image
           const imgWrapper = document.createElement('div');
           imgWrapper.className = 'tabs-card-image';
           imgWrapper.append(pic.cloneNode(true));
           card.append(imgWrapper);
 
-          // Find Title element (paragraph following picture)
-          const parentPara = pic.closest('p') || pic.parentElement;
-          let nextEl = parentPara ? parentPara.nextElementSibling : pic.nextElementSibling;
+          // B. Collect non-empty text elements following this picture
+          const picParent = pic.closest('p') || pic.parentElement;
+          const textElements = [];
+          let sibling = picParent.nextElementSibling;
 
-          if (nextEl) {
-            const titleEl = document.createElement('h3');
-            titleEl.className = 'tabs-card-title';
-            titleEl.textContent = nextEl.textContent.trim();
-            card.append(titleEl);
-
-            nextEl = nextEl.nextElementSibling;
+          while (sibling && !sibling.querySelector('picture')) {
+            if (sibling.textContent.trim().length > 0) {
+              textElements.push(sibling);
+            }
+            sibling = sibling.nextElementSibling;
           }
 
-          // Find Description element (paragraph following title)
-          if (nextEl && !nextEl.querySelector('picture')) {
+          // C. First text element = Title (h3)
+          if (textElements.length > 0) {
+            const titleEl = document.createElement('h3');
+            titleEl.className = 'tabs-card-title';
+            titleEl.textContent = textElements[0].textContent.trim();
+            card.append(titleEl);
+          }
+
+          // D. Second text element = Description (p)
+          if (textElements.length > 1) {
             const descEl = document.createElement('p');
             descEl.className = 'tabs-card-desc';
-            descEl.textContent = nextEl.textContent.trim();
+            descEl.textContent = textElements[1].textContent.trim();
             card.append(descEl);
           }
 
           panel.append(card);
         });
       } else {
-        // Fallback for direct children
         [...contentEl.children].forEach((child) => {
           const card = document.createElement('div');
           card.className = 'tabs-card';
@@ -94,16 +93,12 @@ export default function decorate(block) {
       }
     }
 
-    // Tab toggle click listener
+    // Toggle click event
     button.addEventListener('click', () => {
-      tabList.querySelectorAll('.tabs-tab').forEach((btn) => {
-        btn.classList.remove('active');
-        btn.setAttribute('aria-selected', 'false');
-      });
+      tabList.querySelectorAll('.tabs-tab').forEach((btn) => btn.classList.remove('active'));
       panelsContainer.querySelectorAll('.tabs-panel').forEach((p) => p.classList.remove('active'));
 
       button.classList.add('active');
-      button.setAttribute('aria-selected', 'true');
       panel.classList.add('active');
     });
 
