@@ -133,11 +133,10 @@
 
 .faq-help p {
   margin: 0 0 5px;
-  color:#202020
+  color:#202020;
   font-size: 14px;
   line-height: 1.5;
 }
-
 .faq-help a {
   color: #0045FF;
   text-decoration: underline;
