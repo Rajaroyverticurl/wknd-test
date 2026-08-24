@@ -1,138 +1,68 @@
 /* ==========================================================================
-   AEM Edge Delivery Services (EDS) - Adventures Block
-   File location: /blocks/adventures/adventures.css
+   AEM Edge Delivery Services (EDS) - Column Header Tabs Block
+   File location: /blocks/tabs/tabs.css
    ========================================================================== */
 
-.adventures {
+.tabs {
   width: 100%;
   margin: 2rem 0;
   box-sizing: border-box;
 }
 
-/* Optional Section Heading Styling (e.g. <h2>Current Adventures</h2>) */
-.section .adventures-container h2,
-.adventures-title {
-  font-family: Georgia, serif;
-  font-size: 2.2rem;
-  font-weight: 400;
-  color: #222222;
-  margin-bottom: 8px;
-  position: relative;
-}
-
-/* Yellow underline accent bar under heading */
-.section .adventures-container h2::after,
-.adventures-title::after {
-  content: '';
-  display: block;
-  width: 70px;
-  height: 3px;
-  background-color: #ffd100; /* Yellow accent line */
-  margin-top: 10px;
-}
-
-/* --------------------------------------------------------------------------
-   Tabs Filter Menu
-   -------------------------------------------------------------------------- */
-.adventures-tabs {
+/* Tab Navigation Bar */
+.tabs .tabs-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 2.5rem 0 2rem 0;
+  gap: 4px;
+  border-bottom: 1px solid #e2e2e2;
+  margin-bottom: 1.5rem;
 }
 
-.adventures-tab-btn {
+/* Individual Tab Button */
+.tabs .tabs-tab {
   background: transparent;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #333333;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Active Tab Button (Black background, white text) */
-.adventures-tab-btn.active {
+/* Active Tab Button Style (Solid Black Box) */
+.tabs .tabs-tab.active {
   background-color: #1a1a1a;
   color: #ffffff;
 }
 
-/* Inactive Tab Hover State */
-.adventures-tab-btn:hover:not(.active) {
+/* Hover State */
+.tabs .tabs-tab:hover:not(.active) {
   background-color: #f2f2f2;
   color: #000000;
 }
 
-/* --------------------------------------------------------------------------
-   Cards Grid (4 Columns)
-   -------------------------------------------------------------------------- */
-.adventures-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+/* Panels Container */
+.tabs .tabs-panels {
+  width: 100%;
 }
 
-/* Card Item */
-.adventures-card {
-  display: flex;
-  flex-direction: column;
-  transition: opacity 0.25s ease;
-}
-
-/* Hidden state for filtered items */
-.adventures-card.hidden {
+/* Tab Content Panel - Hidden by default */
+.tabs .tabs-panel {
   display: none;
+  width: 100%;
 }
 
-/* Card Image Wrapper */
-.adventures-card-image {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  overflow: hidden;
-  margin-bottom: 12px;
-  background-color: #eee;
-}
-
-.adventures-card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Active Panel - Displayed when tab is selected */
+.tabs .tabs-panel.active {
   display: block;
-  transition: transform 0.3s ease;
 }
 
-.adventures-card:hover .adventures-card-image img {
-  transform: scale(1.03); /* Subtle zoom on hover */
-}
-
-/* Card Title */
-.adventures-card-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #111111;
-  margin: 0;
-  line-height: 1.3;
-}
-
-/* --------------------------------------------------------------------------
-   Responsive Breakpoints
-   -------------------------------------------------------------------------- */
-@media (max-width: 1024px) {
-  .adventures-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-@media (max-width: 600px) {
-  .adventures-grid {
-    grid-template-columns: 1fr;
-  }
+/* Image inside Tab Content */
+.tabs .tabs-panel img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }

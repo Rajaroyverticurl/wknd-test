@@ -1,90 +1,77 @@
 /**
- * Decorates the Adventures filterable tabs and grid block.
- * @param {Element} block The adventures block element
+ * Decorates the Tabs block where Row 1 = Tab Titles and Row 2 = Content per Tab.
+ * @param {Element} block The tabs block element
  */
 export default function decorate(block) {
   const rows = [...block.children];
+  if (rows.length < 2) return;
 
-  // Set to collect unique categories for tabs (default starts with ALL)
-  const categories = new Set(['ALL']);
-  const cardItems = [];
+  // Row 1 = Titles, Row 2 = Contents
+  const titleRow = rows[0];
+  const contentRow = rows[1];
 
-  // Parse authored rows
-  rows.forEach((row) => {
-    const picture = row.children[0]?.querySelector('picture') || row.children[0]?.querySelector('img');
-    const title = row.children[1]?.textContent?.trim() || '';
-    const category = row.children[2]?.textContent?.trim().toUpperCase() || 'OTHER';
+  const tabTitles = [...titleRow.children];
+  const tabContents = [...contentRow.children];
 
-    if (category) {
-      category.split(',').forEach((cat) => categories.add(cat.trim()));
-    }
+  // Container for tab buttons
+  const tabList = document.createElement('div');
+  tabList.className = 'tabs-list';
+  tabList.setAttribute('role', 'tablist');
 
-    cardItems.push({
-      picture,
-      title,
-      category,
-    });
-  });
+  // Container for tab panels
+  const panelsContainer = document.createElement('div');
+  panelsContainer.className = 'tabs-panels';
 
-  // 1. Build Filter Tabs Bar
-  const tabsUl = document.createElement('ul');
-  tabsUl.className = 'adventures-tabs';
+  // Build tabs and panels by matching column index
+  tabTitles.forEach((titleEl, index) => {
+    const tabName = titleEl.textContent.trim();
+    const contentEl = tabContents[index];
 
-  categories.forEach((cat) => {
-    const li = document.createElement('li');
+    const tabId = `tab-btn-${index}`;
+    const panelId = `tab-panel-${index}`;
+
+    // 1. Create Tab Button
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = `adventures-tab-btn ${cat === 'ALL' ? 'active' : ''}`;
-    button.textContent = cat;
-    button.dataset.category = cat;
+    button.className = `tabs-tab ${index === 0 ? 'active' : ''}`;
+    button.id = tabId;
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+    button.setAttribute('aria-controls', panelId);
+    button.textContent = tabName;
 
-    // Filter click handler
-    button.addEventListener('click', () => {
-      // Update active tab button style
-      tabsUl.querySelectorAll('.adventures-tab-btn').forEach((btn) => btn.classList.remove('active'));
-      button.classList.add('active');
+    // 2. Create Corresponding Panel
+    const panel = document.createElement('div');
+    panel.className = `tabs-panel ${index === 0 ? 'active' : ''}`;
+    panel.id = panelId;
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', tabId);
 
-      // Filter card visibility
-      const selectedCategory = button.dataset.category;
-      block.querySelectorAll('.adventures-card').forEach((card) => {
-        const cardCat = card.dataset.category;
-        if (selectedCategory === 'ALL' || cardCat.includes(selectedCategory)) {
-          card.classList.remove('hidden');
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-    });
-
-    li.append(button);
-    tabsUl.append(li);
-  });
-
-  // 2. Build 4-Column Cards Grid
-  const grid = document.createElement('div');
-  grid.className = 'adventures-grid';
-
-  cardItems.forEach((item) => {
-    const card = document.createElement('div');
-    card.className = 'adventures-card';
-    card.dataset.category = item.category;
-
-    // Image container
-    const imgWrapper = document.createElement('div');
-    imgWrapper.className = 'adventures-card-image';
-    if (item.picture) {
-      imgWrapper.append(item.picture.cloneNode(true));
+    if (contentEl) {
+      panel.append(...contentEl.childNodes);
     }
 
-    // Card Title
-    const titleEl = document.createElement('h3');
-    titleEl.className = 'adventures-card-title';
-    titleEl.textContent = item.title;
+    // 3. Click Event Listener
+    button.addEventListener('click', () => {
+      // Deactivate all buttons & panels
+      tabList.querySelectorAll('.tabs-tab').forEach((btn) => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      panelsContainer.querySelectorAll('.tabs-panel').forEach((p) => {
+        p.classList.remove('active');
+      });
 
-    card.append(imgWrapper, titleEl);
-    grid.append(card);
+      // Activate clicked button & matching panel
+      button.classList.add('active');
+      button.setAttribute('aria-selected', 'true');
+      panel.classList.add('active');
+    });
+
+    tabList.append(button);
+    panelsContainer.append(panel);
   });
 
-  // Replace original table structure with generated Tabs & Grid
-  block.replaceChildren(tabsUl, grid);
+  // Replace original table HTML with Tab Bar + Panels
+  block.replaceChildren(tabList, panelsContainer);
 }
