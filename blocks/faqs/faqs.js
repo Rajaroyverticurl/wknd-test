@@ -1,218 +1,163 @@
+/**
+ * FAQ block
+ * @param {Element} block The FAQ block
+ */
 export default function decorate(block) {
   const rows = [...block.children];
 
-  const slides = [];
+  /*
+   * Expected authored structure:
+   *
+   * Row 1: Title
+   * Row 2: Image
+   * Row 3: Description
+   * Row 4+: FAQ question + answer
+   * Last row: Need more help
+   */
 
-  rows.forEach((row) => {
+  if (!rows.length) return;
+
+  // Create main layout
+  const content = document.createElement('div');
+  content.className = 'faq-content';
+
+  const main = document.createElement('div');
+  main.className = 'faq-main';
+
+  const aside = document.createElement('aside');
+  aside.className = 'faq-aside';
+
+  // -------------------------
+  // Title
+  // -------------------------
+
+  const title = rows[0];
+
+  title.classList.add('faq-title');
+
+  const heading = title.querySelector('h1, h2, h3');
+
+  if (heading) {
+    heading.classList.add('faq-heading');
+  } else {
+    const text = title.textContent.trim();
+
+    title.textContent = '';
+
+    const h1 = document.createElement('h1');
+    h1.textContent = text;
+    h1.className = 'faq-heading';
+
+    title.append(h1);
+  }
+
+  main.append(title);
+
+  // -------------------------
+  // Image
+  // -------------------------
+
+  if (rows[1]) {
+    const imageRow = rows[1];
+
+    imageRow.classList.add('faq-image');
+
+    main.append(imageRow);
+  }
+
+  // -------------------------
+  // Description
+  // -------------------------
+
+  if (rows[2]) {
+    const description = rows[2];
+
+    description.classList.add('faq-description');
+
+    main.append(description);
+  }
+
+  // -------------------------
+  // FAQ accordion
+  // -------------------------
+
+  const accordion = document.createElement('div');
+  accordion.className = 'faq-accordion';
+
+  rows.slice(3).forEach((row) => {
     const cells = [...row.children];
 
     if (!cells.length) return;
 
-    /*
-     * DA.live structure:
-     *
-     * 2 columns:
-     * Image | Content
-     *
-     * OR
-     *
-     * 4 columns:
-     * Image | Title | Description | Button
-     */
+    const question = cells[0];
+    const answer = cells[1];
 
-    const imageCell = cells[0];
-    const image = imageCell?.querySelector('img');
+    const item = document.createElement('div');
+    item.className = 'faq-item';
 
-    if (!image) return;
+    const button = document.createElement('button');
 
-    const slide = document.createElement('div');
-    slide.className = 'carousel-slide';
+    button.className = 'faq-question';
+    button.type = 'button';
 
-    /* IMAGE */
-    const imageWrapper = document.createElement('div');
-    imageWrapper.className = 'carousel-image';
+    button.innerHTML = `
+      <span>${question.textContent.trim()}</span>
+      <span class="faq-plus">+</span>
+    `;
 
-    const img = image.cloneNode(true);
-    imageWrapper.appendChild(img);
+    item.append(button);
 
-    slide.appendChild(imageWrapper);
+    if (answer && answer.textContent.trim()) {
+      const answerContainer = document.createElement('div');
 
-    /* CONTENT */
-    const content = document.createElement('div');
-    content.className = 'carousel-content';
+      answerContainer.className = 'faq-answer';
+      answerContainer.hidden = true;
+      answerContainer.append(answer.cloneNode(true));
 
-    if (cells.length === 2) {
-      /*
-       * 2-column DA.live structure
-       * Image | Content
-       */
+      item.append(answerContainer);
 
-      const contentCell = cells[1];
+      button.addEventListener('click', () => {
+        const isOpen = !answerContainer.hidden;
 
-      /*
-       * Copy the authored content.
-       * This preserves heading, paragraph and link.
-       */
-      [...contentCell.children].forEach((element) => {
-        const clone = element.cloneNode(true);
-        content.appendChild(clone);
+        answerContainer.hidden = isOpen;
+        item.classList.toggle('is-open', !isOpen);
+
+        button.querySelector('.faq-plus').textContent = isOpen ? '+' : '−';
       });
-    } else {
-      /*
-       * 4-column structure
-       * Image | Title | Description | Button
-       */
-
-      const title = cells[1]?.textContent.trim();
-      const description = cells[2]?.textContent.trim();
-      const link = cells[3]?.querySelector('a');
-
-      if (title) {
-        const heading = document.createElement('h2');
-        heading.textContent = title;
-        content.appendChild(heading);
-      }
-
-      if (description) {
-        const paragraph = document.createElement('p');
-        paragraph.textContent = description;
-        content.appendChild(paragraph);
-      }
-
-      if (link) {
-        const button = link.cloneNode(true);
-        button.className = 'carousel-button';
-
-        if (!button.textContent.trim()) {
-          button.textContent = 'VIEW TRIP';
-        }
-
-        content.appendChild(button);
-      }
     }
 
-    /* Convert authored link to button */
-    const authoredLink = content.querySelector('a');
-
-    if (authoredLink) {
-      authoredLink.classList.add('carousel-button');
-
-      if (!authoredLink.textContent.trim()) {
-        authoredLink.textContent = 'VIEW TRIP';
-      }
-    }
-
-    slide.appendChild(content);
-
-    slides.push(slide);
+    accordion.append(item);
   });
 
-  /*
-   * IMPORTANT:
-   * If no slides were found, don't destroy the authored content.
-   */
-  if (!slides.length) {
-    console.warn('Carousel: no valid slides found.');
-    return;
-  }
+  main.append(accordion);
 
-  /* Clear block */
-  block.innerHTML = '';
+  // -------------------------
+  // Need more help
+  // -------------------------
 
-  /* VIEWPORT */
-  const viewport = document.createElement('div');
-  viewport.className = 'carousel-viewport';
+  const help = document.createElement('div');
 
-  /* TRACK */
-  const track = document.createElement('div');
-  track.className = 'carousel-track';
+  help.className = 'faq-help';
 
-  slides.forEach((slide) => {
-    track.appendChild(slide);
-  });
+  help.innerHTML = `
+    <h2>Need more help?</h2>
+    <p>
+      Reach us at <a href="mailto:info@example.com">info@example.com</a>
+    </p>
+    <p>
+      Or visit our <a href="#">help center</a>.
+    </p>
+  `;
 
-  viewport.appendChild(track);
-  block.appendChild(viewport);
+  aside.append(help);
 
-  /* CONTROLS */
-  const controls = document.createElement('div');
-  controls.className = 'carousel-controls';
+  // -------------------------
+  // Final layout
+  // -------------------------
 
-  /* DOTS */
-  const dots = document.createElement('div');
-  dots.className = 'carousel-dots';
+  content.append(main);
+  content.append(aside);
 
-  slides.forEach((slide, index) => {
-    const dot = document.createElement('button');
-
-    dot.type = 'button';
-    dot.className = 'carousel-dot';
-
-    if (index === 0) {
-      dot.classList.add('active');
-    }
-
-    dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
-
-    dot.addEventListener('click', () => {
-      goToSlide(index);
-    });
-
-    dots.appendChild(dot);
-  });
-
-  /* ARROWS */
-  const arrows = document.createElement('div');
-  arrows.className = 'carousel-arrows';
-
-  const previous = document.createElement('button');
-  previous.type = 'button';
-  previous.className = 'carousel-arrow';
-  previous.setAttribute('aria-label', 'Previous slide');
-  previous.innerHTML = '&#8592;';
-
-  const next = document.createElement('button');
-  next.type = 'button';
-  next.className = 'carousel-arrow';
-  next.setAttribute('aria-label', 'Next slide');
-  next.innerHTML = '&#8594;';
-
-  arrows.appendChild(previous);
-  arrows.appendChild(next);
-
-  controls.appendChild(dots);
-  controls.appendChild(arrows);
-
-  block.appendChild(controls);
-
-  let currentSlide = 0;
-
-  function goToSlide(index) {
-    currentSlide = index;
-
-    track.style.transform =
-      `translateX(-${currentSlide * 100}%)`;
-
-    [...dots.children].forEach((dot, i) => {
-      dot.classList.toggle('active', i === currentSlide);
-    });
-  }
-
-  previous.addEventListener('click', () => {
-    const index =
-      currentSlide === 0
-        ? slides.length - 1
-        : currentSlide - 1;
-
-    goToSlide(index);
-  });
-
-  next.addEventListener('click', () => {
-    const index =
-      currentSlide === slides.length - 1
-        ? 0
-        : currentSlide + 1;
-
-    goToSlide(index);
-  });
+  block.textContent = '';
+  block.append(content);
 }
