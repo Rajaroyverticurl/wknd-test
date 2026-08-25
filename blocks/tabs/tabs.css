@@ -43,6 +43,7 @@
 /* Tab Panels */
 .tabs .tabs-panels {
   width: 100%;
+  display:none;
 }
 
 .tabs .tabs-panel {
